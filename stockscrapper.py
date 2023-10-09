@@ -34,15 +34,17 @@ def getStockDataArray(symbol):
     webpage = BeautifulSoup(req.text, "html.parser")
 
     percentchange = webpage.find("fin-streamer", {"data-pricehint": "2", "data-field": "regularMarketChangePercent"}).text
+    estReturn = webpage.find("div", {"class": "Mb(8px)"}).text
     stock = [
         symbol,
         webpage.find("fin-streamer", {"data-pricehint": "2", "data-field": "regularMarketPrice"}).text,
         webpage.find("fin-streamer", {"data-pricehint": "2", "data-field": "regularMarketChange"}).text,
-        percentchange[1:len(percentchange)-1] 
+        percentchange[1:len(percentchange)-1],
+        estReturn[0:estReturn.find(" ")]
     ]
     return stock
 
-fileReader.append(["Symbol", "Price", "Change", "Percent Change"])
+fileReader.append(["Symbol", "Price", "Change", "Percent Change", "Yahoo Estimated Return"])
 for stock in stockList:
         fileReader.append(getStockDataArray(stock))
         print("Scrapping: " + stock),
