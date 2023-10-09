@@ -1,0 +1,7 @@
+This project scrapes stock data from Yahoo Finance and outputs the price, change, and percent change in an excel file.
+You can change the stocks scrapped by editing the stockList array. By default this program scrapes data from The Magnificent Seven.
+
+To run, make sure you have the following packages:
+requests -> pip install requests
+BeautifulSoup -> pip install beautifulsoup4
+openpyxl -> pip install openpyxl
