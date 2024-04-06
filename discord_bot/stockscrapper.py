@@ -44,11 +44,11 @@ def getStockDataArray(symbol):
     ]
     return stock
 
-fileReader.append(["Symbol", "Price", "Change", "Percent Change", "Yahoo Estimated Return"])
-for stock in stockList:
-        fileReader.append(getStockDataArray(stock))
-        print("Scrapping: " + stock),
+# fileReader.append(["Symbol", "Price", "Change", "Percent Change", "Yahoo Estimated Return"])
+# for stock in stockList:
+#         fileReader.append(getStockDataArray(stock))
+#         print("Scrapping: " + stock),
         
-print("Done")
-stockDataFile.save("stockDataFile.xlsx")
+# print("Done")
+# stockDataFile.save("stockDataFile.xlsx")
     
