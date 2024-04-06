@@ -1,5 +1,4 @@
-This project scrapes stock data from Yahoo Finance and outputs the price, change, and percent change in an excel file.
-You can change the stocks scrapped by editing the stockList array. By default this program scrapes data from The Magnificent Seven.
+This project allows you to upload an image via a Discord bot which then sends API requests to Yahoo finance to gather data. From here, the data is sent to OpenAI API to analyze. User data is also saved via Django backend to create ease of use.
 
 To run, make sure you have the following packages:
 requests -> pip install requests
