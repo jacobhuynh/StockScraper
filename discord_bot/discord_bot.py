@@ -50,10 +50,6 @@ bot = commands.Bot(command_prefix="!", intents = discord.Intents.all())
 async def on_ready():
     print("ready")
     
-@bot.command(name="help")
-async def help(context):
-    await context.send("List of available commands: !help, !addstock, !getstockinfo, !uploadstocks")
-    
 @bot.command(name="addstock")
 async def addstock(context):
     await context.send("Enter a stock ticker to add or 'cancel' to cancel.")
