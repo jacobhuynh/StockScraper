@@ -50,6 +50,66 @@ bot = commands.Bot(command_prefix="!", intents = discord.Intents.all())
 async def on_ready():
     print("ready")
     
+@bot.command(name="help")
+async def help(context):
+    await context.send("List of available commands: !help, !addstock, !getstockinfo, !uploadstocks")
+    
+@bot.command(name="addstock")
+async def addstock(context):
+    await context.send("Enter a stock ticker to add or 'cancel' to cancel.")
+    
+    def check(message):
+        return message.author == context.author and message.channel == context.channel
+    
+    try:
+        # timeout user if over 60 seconds
+        message = await bot.wait_for("message", timeout=60.0, check=check)
+        if(message.content == "cancel"):
+            raise Exception("cancelled")
+    except asyncio.TimeoutError:
+        await context.send("You took too long to send a stock.")
+    except Exception as e:
+        await context.send("Cancelled.")
+    else:
+        if await sync_to_async(Users.objects.filter(discord_id=str(context.author)).exists)():
+            user = await sync_to_async(Users.objects.get)(discord_id=context.author)
+            user.stock_list = user.stock_list + ', ' + message.content
+            await sync_to_async(user.save)()
+            await context.send("Your updated stocks: " + user.stock_list)  
+        else:
+            await sync_to_async(Users.objects.create)(discord_id = context.author, stock_list = message)
+    
+@bot.command(name="getstockinfo")
+async def getstockinfo(context):
+    if await sync_to_async(Users.objects.filter(discord_id=str(context.author)).exists)():
+        user = await sync_to_async(Users.objects.get)(discord_id=context.author)
+        stock_list = user.stock_list.split(", ")
+        
+        stock_data_list = []
+        
+        try:
+            await context.send("Gathering Data.")
+            for stock in stock_list:
+                stock_data_list.append(getStockDataArray(stock))
+                
+            # send to openai api to get back stock analysis
+            for stock in stock_data_list:
+                stock_data_string = ', '.join(stock)
+                print(stock_data_string)
+                openai_response2 = openai.ChatCompletion.create(
+                    model="gpt-4-0125-preview",
+                    messages=[
+                        {"role": "user", 
+                        "content":"I have a portfolio of stocks and need detailed analysis and advice on each. Each stock will be formatted as follows: 'Symbol, Price, Change, Percent Change, Yahoo Estimated Return'. Here is one of the stocks and it's respective data: " + stock_data_string + "You must format it like so: **Company Name (Ticker)** (statistics listed in bullet points) **Analysis** (newline, analysis) **Advice** (newline, advice) and nothing else. It is dire that you keep it LESS THAN 2000 CHARACTERS or I will die, so ensure that your response is 2000 characters or less."
+                        }
+                    ]
+                )
+                await context.send(openai_response2['choices'][0]['message']['content'].strip("\n").strip())
+        except Exception as e:
+            await context.send("An error occured. Please try again.")
+    else:
+        await context.send("You have no stocks yet.")
+        
 @bot.command(name="mystocks")
 async def mystocks(context):
     if await sync_to_async(Users.objects.filter(discord_id=str(context.author)).exists)():
@@ -87,6 +147,7 @@ async def uploadstocks(context):
             print(result.status)
             print(result.analyze_result)
             
+            await context.send("Analyzing Image.")
             while True:
                 result = cv_client.get_read_result(operation_id)
                 if result.status not in [OperationStatusCodes.not_started, OperationStatusCodes.running]:
@@ -99,7 +160,6 @@ async def uploadstocks(context):
                 for analyzed_result in read_results:
                     for line in analyzed_result.lines:
                         final_read += " " + line.text
-                await context.send("Analyzing Image.")
                 
                 # send to openai api to get back stock tickers
                 openai_response = openai.ChatCompletion.create(
@@ -143,6 +203,7 @@ async def uploadstocks(context):
                         ]
                     )
                     await context.send(openai_response2['choices'][0]['message']['content'].strip("\n").strip())
+                await context.send("THIS IS NOT FINANCIAL ADVICE.")
             else:
                 await context.send("Could not process image: " + image_url)
         except Exception as e:
